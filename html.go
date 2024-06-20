@@ -3,22 +3,34 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 
 	"golang.org/x/net/html"
 )
 
-var raw = `
-<!DOCTYPE html>
-<html>
-  <body>
-    <h1>My First Heading</h1>
-      <p>My first paragraph.</p>
-      <p>HTML <a href="https://www.w3schools.com/html/html_images.asp">images</a> are defined with the img tag:</p>
-      <img src="xxx.jpg" width="104" height="142">
-  </body>
-</html>`
+
+func getHtml() []byte{
+	resp,err := http.Get("https://www.amazon.in/")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "findlinks1: %v\n", err)
+		os.Exit(-1)
+	}
+
+	defer resp.Body.Close()
+
+	body , err := io.ReadAll(resp.Body);
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "findlinks1: %v\n", err)
+		os.Exit(-1)
+	}
+	return body
+	
+}
+
+var raw = string(getHtml())
 
 func visit(n *html.Node, pwords , ppics *int) {
 	if n.Type == html.TextNode {
